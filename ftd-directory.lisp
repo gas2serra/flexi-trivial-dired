@@ -7,14 +7,14 @@
 (defun gid->name (gid)
   ;; see `uid->name'. Admittedly, I'm not sure what a gid is, or quite why
   ;; returning NIL here works, but it does.
-  (mm::awhen (nix::getgrgid gid)
-    (getgrnam mm::it)))
+  (anaphora:awhen (nix::getgrgid gid)
+    (getgrnam anaphora:it)))
 
 (defun uid->name (uid)
   ;; if a file has not yet been visited, it won't have an owner and attempting to 
   ;; getpwnam of NIL throws.
-  (mm::awhen (nix::getpwuid uid)
-    (getpwnam mm::it)))
+  (anaphora:awhen (nix::getpwuid uid)
+    (getpwnam anaphora:it)))
 
 (defconstant +unix-epoch+ (encode-universal-time 0 0 0 1 1 1970 0))
 
@@ -109,7 +109,15 @@
   (logand (logior s-ixusr s-ixgrp s-ixoth) mode))
 
 (defun directory-names (dirname)
-  (mapcar 'mm::filename (mm::ls dirname))
+  ;; TO FIX
+  (format *debug-io* "??? ~A~%" (cl-fad:list-directory dirname))
+  (mapcar (lambda (p)
+	    (let ((s (namestring p)))
+	      (if (eq (char s (1- (length s))) #\/)
+		  (car (last (SPLIT-SEQUENCE:SPLIT-SEQUENCE #\SOLIDUS s :end (- (length s) 1))))
+		  (car (last (SPLIT-SEQUENCE:SPLIT-SEQUENCE #\SOLIDUS s))))))
+          (cl-fad:list-directory dirname))
+  ;;(mapcar 'mm::filename (cl-fad:list-directory dirname))
   ;; (let (DIR names)
   ;;   (unwind-protect
   ;; 	 (progn

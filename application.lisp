@@ -28,6 +28,14 @@
 
 (in-package :ftd)
 
+(defun current-tabs ()
+  (mapcar
+   #'(lambda (tab)
+       (car (sheet-children (caddr (sheet-children (cadr (sheet-children
+				     (tab-page-pane tab))))))))
+   (clim-tab-layout::tab-layout-pages
+    (find-pane-named ftd-frame 'tab-layout-pane))))
+
 (defclass ftd-info-pane (info-pane)
   ()
   (:default-initargs
@@ -119,7 +127,7 @@
         ((last1 (pathname-directory ;; (user-homedir-pathname)
                  start-directory
                  )) window))
-      (20 minibuffer))))
+      (220 minibuffer))))
   (:top-level (esa-top-level)))
 
 (defun current-pane ()
@@ -173,7 +181,8 @@
                                (cond
                                 ((char= flag *flag-character*) *deleted-files-ink*)
                                 ;;; XXX, this is an utterly horrid test to determine if a file is a directory...
-                                ((not (mm::scan #\. name)) climi::+green+)
+                                ;; TO FIX 
+                                #+nil ((not (mm::scan #\. name)) climi::+green+)
                                 (t *marked-files-ink*)))
                             (format pane "  ~A" name)
 			    (when (typep entry 'ftd-link-entry)
@@ -306,6 +315,7 @@ act on a non-existent directory"))
 	  (namestring (directory-pathname directory))))
 
 (defun make-directory (pathname)
+  (format *debug-io* "~A ~A ~%" pathname (make-directory-entries pathname))
   (let ((entries (make-directory-entries pathname)))
     (when entries			; should always be . and ..
       (make-instance 'ftd-directory
@@ -547,6 +557,7 @@ act on a non-existent directory"))
   (concatenate 'string (namestring directory) file))
 
 (defun make-directory-entries (pathname)
+  (format *debug-io* ">> ~A ~A~%" (namestring pathname) (ftd-directory:directory-names (namestring pathname)))
   (let ((names (ftd-directory:directory-names (namestring pathname))))
     (loop for name in names
 	  collecting (make-entry-from-stat
@@ -1641,7 +1652,7 @@ act on a non-existent directory"))
 (defun tab-with-directory (directory)
   (find-if (lambda (pane/window) (equal (truename directory)
                                         (truename (directory-pathname 
-                                                   (pane-directory (car pane/window))))))
+                                                   (pane-directory pane/window)))))
            (current-tabs)))
 
 (define-command (com-visit-file :name t :command-table global-ftd-table)
@@ -1657,11 +1668,15 @@ act on a non-existent directory"))
              (beep)
              (display-message "No such directory: ~A" (namestring current-pathname))
              (return-from com-visit-file))
-           (mm::aif (tab-with-directory current-pathname)
-                    (switch-to-page mm::it)
-                    (jump-to-dir (make-directory (probe-file current-pathname)))))
+           (anaphora:aif (tab-with-directory current-pathname)
+			 (switch-to-page anaphora:it)
+			 (progn
+			   (format *debug-io* "~A ~A ~A~%" current-pathname (probe-file current-pathname) (make-directory (probe-file current-pathname)))
+			   (jump-to-dir (make-directory (probe-file current-pathname))))))
           (t (ed current-pathname)
-             (stumpwm::select-window "Climacs")))))
+             ;; TOFIX
+             #+nil (stumpwm::select-window "Climacs")
+             ))))
 
 (define-command (com-delete :name t :command-table global-ftd-table)
     ((count 'integer))
@@ -1800,7 +1815,8 @@ act on a non-existent directory"))
 	 (entries (relevant-entries pane (or count 1)))
 	 (command-line (accept 'string :prompt "Command line")))
     (shell-command-entries pane entries command-line)))
-
+;; TO FIX
+#+nil
 (define-command (com-open-in-browser :name t :command-table global-ftd-table)
     ()
   (let* ((pane (current-pane))
@@ -1823,8 +1839,8 @@ act on a non-existent directory"))
          (parent-directory
           (cl-fad:pathname-parent-directory 
            (directory-pathname directory))))    
-    (mm::aif (tab-with-directory parent-directory)
-             (switch-to-page mm::it)
+    (anaphora:aif (tab-with-directory parent-directory)
+             (switch-to-page anaphora:it)
              (add-tab-for-directory (make-directory parent-directory)
                                     (last1 (pathname-directory parent-directory))))))
 
@@ -1975,3 +1991,4 @@ act on a non-existent directory"))
 
 (defmethod esa-current-window ((frame ftd::ftd))
   (first (slot-value frame 'windows)))
+
