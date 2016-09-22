@@ -907,8 +907,8 @@ act on a non-existent directory"))
            (clim-tab-layout::remove-page 
             (clim:sheet-parent (clim:sheet-parent (clim:sheet-parent (clim:sheet-parent (cdr pane/window))))))))
          (t
-	 (beep)
-	 (display-message "Can't close the last tab. Type C-x C-c to quit."))))
+          (beep)
+          (display-message "Can't close the last tab. Type C-x C-c to quit."))))
 
 (defun maybe-scroll-pane (pane)
   (let* ((pvr (pane-viewport-region pane))
@@ -1379,7 +1379,7 @@ act on a non-existent directory"))
       (esa::com-quit)
       (progn 
         (remove-page 
-         (tab-with-directory (directory-pathname (pane-directory (current-pane)))))))))
+         (tab-with-directory (directory-pathname (pane-directory (current-pane))))))))
 
 (define-command (com-next-line :name t :command-table global-ftd-table)
     ((count 'integer :prompt "Number of lines"))
