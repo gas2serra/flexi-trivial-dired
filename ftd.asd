@@ -11,7 +11,7 @@
   :description "Flexi-Trivial Directory editor"
   :version "0.0.3"
   :author "John Splittist <splittist at yahoo.com>"
-  :depends-on (:mcclim :clim-examples :esa :cl-fad :cl-ppcre :osicat :flexichain :anaphora :split-sequence)
+  :depends-on (:mcclim :clim-examples :esa-mcclim :cl-fad :cl-ppcre :osicat :flexichain :anaphora :split-sequence)
   :components ((:file "package")
 	       (:file "variables" :depends-on ("package"))
 	       (:file "application" :depends-on ("package" "variables"))

@@ -222,11 +222,11 @@
 	 (start-directory dir)
          (frame (make-application-frame 'ftd :frame-manager fm)))
     (setf ftd-frame frame)
-    (values (clim-sys:make-process (lambda () 
+    ;;(values (clim-sys:make-process (lambda () 
                                      (unwind-protect (run-frame-top-level frame)
-                                       (disown-frame fm frame)))
-                                   :name "dired")
-            frame)))
+                                       (disown-frame fm frame))
+      ;;                             :name "dired")
+            frame))
 
 ;;; Conditions
 ;;; ============================================================================
@@ -904,8 +904,9 @@ act on a non-existent directory"))
 				  :test #'equal :key #'car)))
 	   (setf (pane/window *application-frame*)
                  (delete pane/window (pane/window *application-frame*)))
-	   (clim-tab-layout::remove-page (cdr pane/window))))
-	(t
+           (clim-tab-layout::remove-page 
+            (clim:sheet-parent (clim:sheet-parent (clim:sheet-parent (clim:sheet-parent (cdr pane/window))))))))
+         (t
 	 (beep)
 	 (display-message "Can't close the last tab. Type C-x C-c to quit."))))
 
@@ -1376,7 +1377,9 @@ act on a non-existent directory"))
     ()
   (if (= 1 (length (current-tabs)))
       (esa::com-quit)
-      (remove-page (tab-with-directory (directory-pathname (pane-directory (current-pane)))))))
+      (progn 
+        (remove-page 
+         (tab-with-directory (directory-pathname (pane-directory (current-pane)))))))))
 
 (define-command (com-next-line :name t :command-table global-ftd-table)
     ((count 'integer :prompt "Number of lines"))
@@ -1651,9 +1654,9 @@ act on a non-existent directory"))
 
 (defun tab-with-directory (directory)
   (find-if (lambda (pane/window) (equal (truename directory)
-                                        (truename (directory-pathname 
-                                                   (pane-directory pane/window)))))
-           (current-tabs)))
+                                                           (truename (directory-pathname 
+                                                                      (pane-directory pane/window)))))
+                              (current-tabs)))
 
 (define-command (com-visit-file :name t :command-table global-ftd-table)
     ()
